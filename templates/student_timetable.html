@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{ student.name }} Timetable</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .timetable th, .timetable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .timetable th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .timetable tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .time-col {
+            width: 10%;
+            font-weight: bold;
+        }
+        .day-col {
+            width: 18%;
+            vertical-align: top;
+        }
+        .timetable-entry {
+            margin: 5px;
+            padding: 8px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .timetable-entry p {
+            margin: 2px 0;
+        }
+        .timetable-entry .subject {
+            font-weight: bold;
+            color: #1565C0;
+        }
+        .timetable-entry .time {
+            font-size: 0.9em;
+            color: #555;
+        }
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn-primary {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 25px;
+            height: 40px;
+        }
+        .btn-primary:hover {
+            background-color: #1976D2;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: white;
+        }
+        .flash-message.success {
+            background-color: #4CAF50;
+        }
+        .flash-message.error {
+            background-color: #f44336;
+        }
+        .flash-message.warning {
+            background-color: #ff9800;
+        }
+        .flash-message.info {
+            background-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="container">
+        <h1 class="page-title">{{ student.name }}'s Timetable</h1>
+        
+        <!-- Flash Messages -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">Add New Timetable Entry</h2>
+            <form method="post">
+                <div class="form-container">
+                    <div class="form-group">
+                        <label>Weekday</label>
+                        <select name="weekday" required>
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="subject_id" required>
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.subject_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" name="start_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" name="end_time" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Entry</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">Weekly Timetable</h2>
+            <div class="table-container">
+                <table class="timetable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set time_slots = [
+                            '09:00', '10:00', '11:00', '12:00', '13:00',
+                            '14:00', '15:00', '16:00', '17:00'
+                        ] %}
+                        
+                        {% for time in time_slots %}
+                        <tr>
+                            <td class="time-col">{{ time }}</td>
+                            {% for day in range(5) %}  <!-- 0-4 for Monday-Friday -->
+                                <td class="day-col">
+                                    {% for entry in timetable_by_day[day] %}
+                                        {% if time >= entry.start_time and time < entry.end_time %}
+                                            {% for s in subjects %}
+                                                {% if s.id == entry.subject_id %}
+                                                    <div class="timetable-entry">
+                                                        <p class="subject">{{ s.subject_name }}</p>
+                                                        <p class="time">{{ entry.start_time }} - {{ entry.end_time }}</p>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">All Entries</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Weekday</th>
+                            <th>Subject</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rows %}
+                        <tr>
+                            <td>{% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}{{ days[r.weekday] }}</td>
+                            <td>
+                                {% for s in subjects %}
+                                    {% if s.id == r.subject_id %}{{ s.subject_name }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ r.start_time }}</td>
+                            <td>{{ r.end_time }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No timetable entries yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-scroll to the current day in the timetable
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Only scroll if it's a weekday (1-5)
+            if (currentDay >= 1 && currentDay <= 5) {
+                const dayColumns = document.querySelectorAll('.day-col');
+                if (dayColumns.length > 0) {
+                    // Adjusting for 0-based index (Monday=0 in our data, but getDay() returns 1 for Monday)
+                    const dayIndex = currentDay - 1;
+                    if (dayIndex < dayColumns.length) {
+                        dayColumns[dayIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        dayColumns[dayIndex].style.backgroundColor = '#f0f7ff';
+                        setTimeout(() => {
+                            dayColumns[dayIndex].style.backgroundColor = '';
+                        }, 2000);
+                    }
+                }
+            }
+            
+            // Auto-hide flash messages after 5 seconds
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(msg => {
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

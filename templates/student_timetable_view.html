@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>{{ student.name }} Timetable</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">{{ student.name }}'s Timetable</h1>
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				{% for category, message in messages %}
+					<div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
+		<div class="card">
+			<h2 class="card-title">Add New Entry</h2>
+			<form method="post">
+				<input type="hidden" name="action" value="add">
+				<div class="form-group">
+					<label>Weekday</label>
+					<select name="weekday" required>
+						<option value="0">Monday</option>
+						<option value="1">Tuesday</option>
+						<option value="2">Wednesday</option>
+						<option value="3">Thursday</option>
+						<option value="4">Friday</option>
+						<option value="5">Saturday</option>
+						<option value="6">Sunday</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Subject</label>
+					<select name="subject_id" required>
+						{% for s in subjects %}
+						<option value="{{ s.id }}">{{ s.subject_name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Start Time</label>
+					<input type="time" name="start_time" required>
+				</div>
+				<div class="form-group">
+					<label>End Time</label>
+					<input type="time" name="end_time" required>
+				</div>
+				<button type="submit" class="btn btn-primary">Add Entry</button>
+			</form>
+		</div>
+		<div class="card">
+			<h2 class="card-title">Current Timetable</h2>
+			<div class="table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Weekday</th>
+							<th>Subject</th>
+							<th>Start</th>
+							<th>End</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for r in rows %}
+						<tr id="row-{{ r.id }}">
+							<td>{% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}{{ days[r.weekday] }}</td>
+							<td>
+								{% for s in subjects %}
+									{% if s.id == r.subject_id %}{{ s.subject_name }}{% endif %}
+								{% endfor %}
+							</td>
+							<td>{{ r.start_time }}</td>
+							<td>{{ r.end_time }}</td>
+							<td>
+								<button onclick="editEntry({{ r.id }}, {{ r.weekday }}, {{ r.subject_id }}, '{{ r.start_time }}', '{{ r.end_time }}')" class="btn btn-secondary" style="padding: 5px 10px; margin-right: 5px;">Edit</button>
+								<form method="post" style="display: inline;" onsubmit="return confirm('Delete this entry?')">
+									<input type="hidden" name="action" value="delete">
+									<input type="hidden" name="entry_id" value="{{ r.id }}">
+									<button type="submit" class="btn" style="background: #dc3545; color: white; padding: 5px 10px; border: none;">Delete</button>
+								</form>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div style="margin-top: 20px;">
+			<a href="/dashboard/student" class="btn btn-secondary">Back to Dashboard</a>
+		</div>
+	</div>
+
+	<!-- Edit Modal -->
+	<div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+		<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%;">
+			<h2>Edit Timetable Entry</h2>
+			<form method="post" id="editForm">
+				<input type="hidden" name="action" value="update">
+				<input type="hidden" name="entry_id" id="edit_entry_id">
+				<div class="form-group">
+					<label>Weekday</label>
+					<select name="weekday" id="edit_weekday" required>
+						<option value="0">Monday</option>
+						<option value="1">Tuesday</option>
+						<option value="2">Wednesday</option>
+						<option value="3">Thursday</option>
+						<option value="4">Friday</option>
+						<option value="5">Saturday</option>
+						<option value="6">Sunday</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Subject</label>
+					<select name="subject_id" id="edit_subject_id" required>
+						{% for s in subjects %}
+						<option value="{{ s.id }}">{{ s.subject_name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Start Time</label>
+					<input type="time" name="start_time" id="edit_start_time" required>
+				</div>
+				<div class="form-group">
+					<label>End Time</label>
+					<input type="time" name="end_time" id="edit_end_time" required>
+				</div>
+				<div class="btn-group">
+					<button type="submit" class="btn btn-primary">Update</button>
+					<button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		function editEntry(id, weekday, subjectId, startTime, endTime) {
+			document.getElementById('edit_entry_id').value = id;
+			document.getElementById('edit_weekday').value = weekday;
+			document.getElementById('edit_subject_id').value = subjectId;
+			document.getElementById('edit_start_time').value = startTime;
+			document.getElementById('edit_end_time').value = endTime;
+			document.getElementById('editModal').style.display = 'block';
+		}
+		function closeEditModal() {
+			document.getElementById('editModal').style.display = 'none';
+		}
+		// Close modal on outside click
+		document.getElementById('editModal').addEventListener('click', function(e) {
+			if (e.target === this) {
+				closeEditModal();
+			}
+		});
+	</script>
+</body>
+</html>
+

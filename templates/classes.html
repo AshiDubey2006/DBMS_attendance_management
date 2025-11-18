@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Classes</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">Classes</h1>
+		<div class="card">
+			<form method="post">
+				<div class="form-group">
+					<label>Class Name</label>
+					<input type="text" name="name" placeholder="Enter class name" required>
+				</div>
+				<button type="submit" class="btn btn-primary">Add Class</button>
+			</form>
+		</div>
+		<div class="card">
+			<h2 class="card-title">All Classes</h2>
+			<div class="table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Class Name</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for c in classes %}
+						<tr>
+							<td>{{ c.name }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Teacher Dashboard</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">Teacher Dashboard</h1>
+		<div class="card">
+			<h2 class="card-title">All Students</h2>
+			<div class="table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Roll No</th>
+							<th>Email</th>
+							<th>Photo</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for s in students %}
+						<tr>
+							<td>{{ s.name }}</td>
+							<td>{{ s.roll_no }}</td>
+							<td>{{ s.email or 'N/A' }}</td>
+							<td>{% if s.photo_path %}<img src="{{ s.photo_path }}" style="max-width:80px; height:80px; object-fit:cover;">{% else %}No photo{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="card">
+			<a href="/logout" class="btn btn-secondary">Logout</a>
+		</div>
+	</div>
+</body>
+</html>

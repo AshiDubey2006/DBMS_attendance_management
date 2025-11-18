@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Student Profile</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">Profile</h1>
+		<div class="card">
+			{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+					{% for category, message in messages %}
+						<div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+					{% endfor %}
+				{% endif %}
+			{% endwith %}
+			<form method="post" enctype="multipart/form-data">
+				<div class="form-group">
+					<label>Name</label>
+					<input type="text" name="name" value="{{ student.name }}" required>
+				</div>
+				<div class="form-group">
+					<label>Roll No</label>
+					<input type="text" value="{{ student.roll_no }}" disabled>
+				</div>
+				<div class="form-group">
+					<label>Email</label>
+					<input type="email" name="email" value="{{ student.email }}">
+				</div>
+				<div class="form-group">
+					<label>Parent Email</label>
+					<input type="email" name="parent_email" value="{{ student.parent_email }}">
+				</div>
+				<div class="form-group">
+					<label>Phone</label>
+					<input type="text" name="phone" value="{{ student.phone }}">
+				</div>
+				<div class="form-group">
+					<label>Class</label>
+					<select name="class_id">
+						<option value="">-- None --</option>
+						{% for c in classes %}
+						<option value="{{ c.id }}" {% if student.class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Update Photo</label>
+					<input type="file" name="photo" accept="image/*">
+					{% if student.photo_path %}
+					<p style="margin-top:0.5rem;"><img src="{{ student.photo_path }}" alt="Current photo" style="max-width:120px;border-radius:8px;"></p>
+					{% endif %}
+				</div>
+				<div class="btn-group">
+					<button type="submit" class="btn btn-primary">Save</button>
+					<a href="/dashboard/student" class="btn btn-secondary">Back to Dashboard</a>
+				</div>
+			</form>
+			<hr style="margin: 30px 0; border: 1px solid #ddd;">
+			<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin-top: 20px;">
+				<h3 style="margin-top: 0; color: #856404;">⚠️ Danger Zone</h3>
+				<p style="color: #856404; margin-bottom: 15px;">Once you delete your profile, there is no going back. This will permanently delete all your data including:</p>
+				<ul style="color: #856404; margin-bottom: 15px;">
+					<li>Your profile information</li>
+					<li>All attendance records</li>
+					<li>Your timetable entries</li>
+					<li>Your photo and face recognition data</li>
+				</ul>
+				<form method="post" action="/dashboard/student/profile/delete" onsubmit="return confirmDelete()" style="display: inline;">
+					<button type="submit" class="btn" style="background: #dc3545; color: white; border: none;">Delete My Profile</button>
+				</form>
+			</div>
+		</div>
+	</div>
+	<script>
+		function confirmDelete() {
+			return confirm("⚠️ Are you sure you want to delete your profile?\n\nThis action cannot be undone. All your data will be permanently deleted from the database.\n\nDo you want to proceed?");
+		}
+	</script>
+</body>
+</html>
+

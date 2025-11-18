@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Timetable</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">Class Timetable</h1>
+		<div class="card">
+			<form method="post">
+				<div class="form-group">
+					<label>Class</label>
+					<select name="class_id" required>
+						{% for c in classes %}
+						<option value="{{ c.id }}">{{ c.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Subject</label>
+					<select name="subject_id" required>
+						{% for s in subjects %}
+						<option value="{{ s.id }}">{{ s.subject_name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Teacher</label>
+					<select name="teacher_id">
+						<option value="">-- None --</option>
+						{% for t in teachers %}
+						<option value="{{ t.id }}">{{ t.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Weekday</label>
+					<select name="weekday" required>
+						<option value="0">Monday</option>
+						<option value="1">Tuesday</option>
+						<option value="2">Wednesday</option>
+						<option value="3">Thursday</option>
+						<option value="4">Friday</option>
+						<option value="5">Saturday</option>
+						<option value="6">Sunday</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Start Time</label>
+					<input type="time" name="start_time" required>
+				</div>
+				<div class="form-group">
+					<label>End Time</label>
+					<input type="time" name="end_time" required>
+				</div>
+				<button type="submit" class="btn btn-primary">Add Entry</button>
+			</form>
+		</div>
+		<div class="card">
+			<h2 class="card-title">Timetable Entries</h2>
+			<div class="table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Class</th>
+							<th>Subject</th>
+							<th>Teacher</th>
+							<th>Weekday</th>
+							<th>Start</th>
+							<th>End</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for r in rows %}
+						<tr>
+							<td>{{ r.class_id }}</td>
+							<td>{{ r.subject_id }}</td>
+							<td>{{ r.teacher_id or 'N/A' }}</td>
+							<td>{% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}{{ days[r.weekday] }}</td>
+							<td>{{ r.start_time }}</td>
+							<td>{{ r.end_time }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div style="margin-top: 20px; text-align: center;">
+			<a href="/login" class="btn btn-primary" style="background: #10b981; font-size: 1.1em; padding: 12px 30px;">Register</a>
+		</div>
+	</div>
+</body>
+</html>

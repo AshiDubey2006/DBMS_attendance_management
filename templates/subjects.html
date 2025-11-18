@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Subjects</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	{% include 'header.html' %}
+	<div class="container">
+		<h1 class="page-title">Subjects</h1>
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				{% for category, message in messages %}
+					<div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
+		<div class="card">
+			<form method="post">
+				<div class="form-group">
+					<label>Subject Name</label>
+					<input type="text" name="subject_name" placeholder="Enter subject name" required>
+				</div>
+				<div class="form-group">
+					<div class="checkbox-group">
+						<label class="checkbox-item">
+							<input type="checkbox" name="is_core" id="is_core">
+							<span>Core Subject</span>
+						</label>
+						<label class="checkbox-item">
+							<input type="checkbox" name="is_elective" id="is_elective">
+							<span>Elective Subject</span>
+						</label>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary">Add Subject</button>
+			</form>
+		</div>
+		<div class="card">
+			<h2 class="card-title">All Subjects</h2>
+			<div class="table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Subject Name</th>
+							<th>Core</th>
+							<th>Elective</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for s in subjects %}
+						<tr>
+							<td>{{ s.subject_name }}</td>
+							<td>{% if s.is_core %}Yes{% else %}No{% endif %}</td>
+							<td>{% if s.is_elective %}Yes{% else %}No{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div style="margin-top: 20px; text-align: center;">
+			<a href="/teachers" class="btn btn-primary">Next: Add Teachers →</a>
+		</div>
+	</div>
+</body>
+</html>
