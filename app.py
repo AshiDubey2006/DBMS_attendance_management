@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from database import db
 from models import Student, Subject, StudentSubject, Class, Teacher, Timetable, StudentTimetable, Attendance, TeacherSubject
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -193,7 +194,14 @@ def register_student():
 			classes = Class.query.all()
 			return render_template("register.html", classes=classes)
 
-		photo_path = save_photo_file(photo, roll_no)
+		# Save uploaded photo safely; if saving fails, show a friendly error
+		try:
+			photo_path = save_photo_file(photo, roll_no)
+		except Exception as e:
+			app.logger.exception('Failed to save uploaded photo')
+			flash('Failed to save uploaded photo. Please try again or contact admin.', 'error')
+			classes = Class.query.all()
+			return render_template('register.html', classes=classes)
 
 		student = Student(
 			name=name,
@@ -282,7 +290,12 @@ def register_student():
 			return redirect(url_for("subjects"))
 		except Exception as e:
 			db.session.rollback()
-			flash(f"An error occurred during registration: {str(e)}", "error")
+			app.logger.exception('Error during student registration')
+			# If this is a DB integrity error (e.g. duplicate roll_no), show friendly message
+			if isinstance(e, IntegrityError) or 'unique' in str(e).lower():
+				flash('A student with this roll number or identifying value already exists.', 'error')
+			else:
+				flash(f"An error occurred during registration: {str(e)}", "error")
 
 	# Handle GET request
 	classes = Class.query.all()
