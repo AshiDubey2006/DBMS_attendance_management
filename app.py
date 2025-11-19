@@ -56,7 +56,20 @@ def save_photo_file(upload, identifier: str) -> str | None:
 
 app = Flask(__name__)
 # Configure database from environment variable
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///attendance.db')
+_db_url = os.getenv('DATABASE_URL') or 'sqlite:///attendance.db'
+# If someone provides the old Heroku-style URL `postgres://...` or plain `postgresql://...`,
+# prefer the modern psycopg driver which is installed via `psycopg` package.
+if isinstance(_db_url, str) and (_db_url.startswith('postgres://') or _db_url.startswith('postgresql://')):
+	# normalize to use psycopg driver for SQLAlchemy
+	# - if the URL already contains a + driver (e.g. postgresql+psycopg2://) leave as-is
+	if '+psycopg' not in _db_url:
+		# replace the scheme portion
+		if _db_url.startswith('postgres://'):
+			_db_url = _db_url.replace('postgres://', 'postgresql+psycopg://', 1)
+		else:
+			_db_url = _db_url.replace('postgresql://', 'postgresql+psycopg://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secretkey')  # needed for forms & flash messages
 
